@@ -1,6 +1,7 @@
 package o365Api
 
 import (
+	"errors"
 	"encoding/json"
 	"fmt"
 	"io/ioutil"
@@ -29,6 +30,10 @@ type TokenResponse struct {
 }
 
 func (t TokenRequest) GetUserBearerToken() (TokenResponse, error) {
+	if len(t.client_id) == 0 || len(t.client_secret) == 0 || len(t.tenant_id) == 0 || len(t.userName) == 0 || len(t.userPassword) == 0 {
+		return TokenResponse{}, errors.New("TokenRequest is not valid")
+	}
+
 	url := fmt.Sprintf("https://login.microsoftonline.com/%s/oauth2/v2.0/token", t.tenant_id)
 
 	payload := strings.NewReader(fmt.Sprintf("grant_type=password&client_id=%s&client_secret=%s&scope=https://graph.microsoft.com/.default&userName=%s&password=%s",
