@@ -72,7 +72,7 @@ type MailMessage struct {
 }
 
 func (request GetInboxMailRequest) GetInboxMail(bearerToken string,) ([]MailMessage, error) {
-	url := "https://graph.microsoft.com/v1.0/me/messages?$filter=%28from/emailAddress/address%29%20eq%20%27support@adestra.com%27"
+	url := "https://graph.microsoft.com/v1.0/me/messages"
 
 	req, _ := http.NewRequest("GET", url, nil)
 
