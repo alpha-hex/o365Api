@@ -9,10 +9,11 @@ import (
 
 type Mail interface {
 	GetMailMesasges(string) ([]MailMessage, error)
+	GetInboxMailFromAddress(string,string)  ([]MailMessage, error)
 }
 
-type GetInboxMailRequest struct {
-	bearerAccessToken string
+type MailRequest struct {
+	bearerAccessToken	string
 }
 
 type MailMessage struct {
@@ -71,7 +72,7 @@ type MailMessage struct {
 	} `json:"value"`
 }
 
-func (request GetInboxMailRequest) GetInboxMail(bearerToken string) ([]MailMessage, error) {
+func (request MailRequest) GetInboxMail(bearerToken string,) ([]MailMessage, error) {
 	url := "https://graph.microsoft.com/v1.0/me/messages"
 
 	req, _ := http.NewRequest("GET", url, nil)
@@ -102,8 +103,8 @@ func (request GetInboxMailRequest) GetInboxMail(bearerToken string) ([]MailMessa
 	return messages, nil
 }
 
-func (request GetInboxMailRequest) GetInboxMailBySenderAddress(bearerToken, fromAddress string) ([]MailMessage, error) {
-	url := fmt.Sprintf("https://graph.microsoft.com/v1.0/me/messages?$filter=(from/emailAddress/address) eq '%s'")
+func (request MailRequest) GetInboxMailFromAddress(bearerToken, fromAddress string) ([]MailMessage, error) {
+	url := fmt.Sprintf("https://graph.microsoft.com/v1.0/me/messages?$filter=(from/emailAddress/address) eq '%s'", fromAddress)
 
 	req, _ := http.NewRequest("GET", url, nil)
 
