@@ -10,6 +10,7 @@ import (
 type Mail interface {
 	GetMailMesasges(string) ([]MailMessage, error)
 	GetInboxMailFromAddress(string, string) ([]MailMessage, error)
+	GetMessageAttachement() (MessageAttachment, error)
 }
 
 type MailRequest struct {
@@ -151,7 +152,7 @@ func (request MailRequest) GetInboxMailFromAddress(bearerToken, fromAddress stri
 	return messages, nil
 }
 
-func (request MailRequest) GetMessaageAttachement(MessageAttachment, error) {
+func (request MailRequest) GetMessageAttachement() (MessageAttachment, error) {
 	url := fmt.Sprintf("https://graph.microsoft.com/v1.0/me/messages/%s/attachments", request.messageID)
 
 	req, _ := http.NewRequest("GET", url, nil)
@@ -165,7 +166,10 @@ func (request MailRequest) GetMessaageAttachement(MessageAttachment, error) {
 	req.Header.Add("Connection", "keep-alive")
 	req.Header.Add("cache-control", "no-cache")
 
-	res, _ := http.DefaultClient.Do(req)
+	res, err := http.DefaultClient.Do(req)
+	if err != nil {
+		return MessageAttachment{}, err
+	}
 
 	defer res.Body.Close()
 	body, _ := ioutil.ReadAll(res.Body)
