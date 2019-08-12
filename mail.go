@@ -9,11 +9,12 @@ import (
 
 type Mail interface {
 	GetMailMesasges(string) ([]MailMessage, error)
-	GetInboxMailFromAddress(string,string)  ([]MailMessage, error)
+	GetInboxMailFromAddress(string, string) ([]MailMessage, error)
 }
 
 type MailRequest struct {
-	bearerAccessToken	string
+	bearerAccessToken string
+	messageID         string
 }
 
 type MailMessage struct {
@@ -72,7 +73,23 @@ type MailMessage struct {
 	} `json:"value"`
 }
 
-func (request MailRequest) GetInboxMail(bearerToken string,) ([]MailMessage, error) {
+type MessageAttachment struct {
+	_odata_context string `json:"@odata.context"`
+	Value          []struct {
+		_odata_type          string      `json:"@odata.type"`
+		ContentBytes         string      `json:"contentBytes"`
+		ContentID            string      `json:"contentId"`
+		ContentLocation      interface{} `json:"contentLocation"`
+		ContentType          string      `json:"contentType"`
+		ID                   string      `json:"id"`
+		IsInline             bool        `json:"isInline"`
+		LastModifiedDateTime string      `json:"lastModifiedDateTime"`
+		Name                 string      `json:"name"`
+		Size                 int         `json:"size"`
+	} `json:"value"`
+}
+
+func (request MailRequest) GetInboxMail(bearerToken string) ([]MailMessage, error) {
 	url := "https://graph.microsoft.com/v1.0/me/messages"
 
 	req, _ := http.NewRequest("GET", url, nil)
@@ -132,4 +149,31 @@ func (request MailRequest) GetInboxMailFromAddress(bearerToken, fromAddress stri
 	err = json.Unmarshal(body, &messages)
 
 	return messages, nil
+}
+
+func (request MailRequest) GetMessaageAttachement(MessageAttachment, error) {
+	url := fmt.Sprintf("https://graph.microsoft.com/v1.0/me/messages/%s/attachments", request.messageID)
+
+	req, _ := http.NewRequest("GET", url, nil)
+
+	req.Header.Add("Content-Type", "application/json")
+	req.Header.Add("Authorization", fmt.Sprintf("Bearer %s", request.bearerAccessToken))
+	req.Header.Add("Accept", "*/*")
+	req.Header.Add("Cache-Control", "no-cache")
+	req.Header.Add("Host", "graph.microsoft.com")
+	req.Header.Add("Accept-Encoding", "gzip, deflate")
+	req.Header.Add("Connection", "keep-alive")
+	req.Header.Add("cache-control", "no-cache")
+
+	res, _ := http.DefaultClient.Do(req)
+
+	defer res.Body.Close()
+	body, _ := ioutil.ReadAll(res.Body)
+
+	var msgAttachment MessageAttachment
+	if err := json.Unmarshal(body, &msgAttachment); err != nil {
+		return MessageAttachment{}, err
+	}
+
+	return msgAttachment, nil
 }
