@@ -34,7 +34,7 @@ func (t TokenRequest) GetUserBearerToken() (TokenResponse, error) {
 		return TokenResponse{}, errors.New("TokenRequest is not valid")
 	}
 
-	url := fmt.Sprintf("https://login.microsoftonline.com/%s/oauth2/v2.0/token", t.tenant_id)
+	url := fmt.Sprintf("https://login.microsoftonline.com/%s/oauth2/v2.0/token", t.Tenant_ID)
 
 	payload := strings.NewReader(fmt.Sprintf("grant_type=password&client_id=%s&client_secret=%s&scope=https://graph.microsoft.com/.default&userName=%s&password=%s",
 		t.Client_ID, t.Client_Secret, t.UserName, t.UserPassword))
