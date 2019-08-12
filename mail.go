@@ -9,6 +9,7 @@ import (
 
 type Mail interface {
 	GetMailMesasges(string) ([]MailMessage, error)
+	GetInboxMailFromAddress(string,string)  ([]MailMessage, error)
 }
 
 type GetInboxMailRequest struct {
@@ -73,6 +74,37 @@ type MailMessage struct {
 
 func (request GetInboxMailRequest) GetInboxMail(bearerToken string,) ([]MailMessage, error) {
 	url := "https://graph.microsoft.com/v1.0/me/messages"
+
+	req, _ := http.NewRequest("GET", url, nil)
+
+	req.Header.Add("Content-Type", "application/json")
+	req.Header.Add("Authorization", fmt.Sprintf("Bearer %s", request.bearerAccessToken))
+	req.Header.Add("Accept", "*/*")
+	req.Header.Add("Cache-Control", "no-cache")
+	req.Header.Add("Host", "graph.microsoft.com")
+	req.Header.Add("Accept-Encoding", "gzip, deflate")
+	req.Header.Add("Connection", "keep-alive")
+	req.Header.Add("cache-control", "no-cache")
+
+	res, err := http.DefaultClient.Do(req)
+	if err != nil {
+		return []MailMessage{}, err
+	}
+
+	defer res.Body.Close()
+	body, err := ioutil.ReadAll(res.Body)
+	if err != nil {
+		return []MailMessage{}, err
+	}
+
+	var messages []MailMessage
+	err = json.Unmarshal(body, &messages)
+
+	return messages, nil
+}
+
+func (request GetInboxMailRequest) GetInboxMailFromAddress(bearerToken, fromAddress string) ([]MailMessage, error) {
+	url := fmt.Sprintf("https://graph.microsoft.com/v1.0/me/messages?$filter=(from/emailAddress/address) eq '%s'", fromAddress)
 
 	req, _ := http.NewRequest("GET", url, nil)
 
