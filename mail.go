@@ -14,8 +14,8 @@ type Mail interface {
 }
 
 type MailRequest struct {
-	bearerAccessToken string
-	messageID         string
+	BearerAccessToken string
+	MessageID         string
 }
 
 type MailMessage struct {
@@ -96,7 +96,7 @@ func (request MailRequest) GetInboxMail(bearerToken string) ([]MailMessage, erro
 	req, _ := http.NewRequest("GET", url, nil)
 
 	req.Header.Add("Content-Type", "application/json")
-	req.Header.Add("Authorization", fmt.Sprintf("Bearer %s", request.bearerAccessToken))
+	req.Header.Add("Authorization", fmt.Sprintf("Bearer %s", request.BearerAccessToken))
 	req.Header.Add("Accept", "*/*")
 	req.Header.Add("Cache-Control", "no-cache")
 	req.Header.Add("Host", "graph.microsoft.com")
@@ -127,7 +127,7 @@ func (request MailRequest) GetInboxMailFromAddress(bearerToken, fromAddress stri
 	req, _ := http.NewRequest("GET", url, nil)
 
 	req.Header.Add("Content-Type", "application/json")
-	req.Header.Add("Authorization", fmt.Sprintf("Bearer %s", request.bearerAccessToken))
+	req.Header.Add("Authorization", fmt.Sprintf("Bearer %s", request.BearerAccessToken))
 	req.Header.Add("Accept", "*/*")
 	req.Header.Add("Cache-Control", "no-cache")
 	req.Header.Add("Host", "graph.microsoft.com")
@@ -153,12 +153,12 @@ func (request MailRequest) GetInboxMailFromAddress(bearerToken, fromAddress stri
 }
 
 func (request MailRequest) GetMessageAttachement() (MessageAttachment, error) {
-	url := fmt.Sprintf("https://graph.microsoft.com/v1.0/me/messages/%s/attachments", request.messageID)
+	url := fmt.Sprintf("https://graph.microsoft.com/v1.0/me/messages/%s/attachments", request.MessageID)
 
 	req, _ := http.NewRequest("GET", url, nil)
 
 	req.Header.Add("Content-Type", "application/json")
-	req.Header.Add("Authorization", fmt.Sprintf("Bearer %s", request.bearerAccessToken))
+	req.Header.Add("Authorization", fmt.Sprintf("Bearer %s", request.BearerAccessToken))
 	req.Header.Add("Accept", "*/*")
 	req.Header.Add("Cache-Control", "no-cache")
 	req.Header.Add("Host", "graph.microsoft.com")
