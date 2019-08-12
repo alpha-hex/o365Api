@@ -1,8 +1,8 @@
 package o365Api
 
 import (
-	"fmt"
 	"encoding/json"
+	"fmt"
 	"io/ioutil"
 	"net/http"
 )
@@ -12,7 +12,7 @@ type Mail interface {
 }
 
 type GetInboxMailRequest struct {
-	bearerAccessToken	string
+	bearerAccessToken string
 }
 
 type MailMessage struct {
@@ -71,8 +71,39 @@ type MailMessage struct {
 	} `json:"value"`
 }
 
-func (request GetInboxMailRequest) GetInboxMail(bearerToken string,) ([]MailMessage, error) {
-	url := "https://graph.microsoft.com/v1.0/me/messages?$filter=%28from/emailAddress/address%29%20eq%20%27support@adestra.com%27"
+func (request GetInboxMailRequest) GetInboxMail(bearerToken string) ([]MailMessage, error) {
+	url := "https://graph.microsoft.com/v1.0/me/messages"
+
+	req, _ := http.NewRequest("GET", url, nil)
+
+	req.Header.Add("Content-Type", "application/json")
+	req.Header.Add("Authorization", fmt.Sprintf("Bearer %s", request.bearerAccessToken))
+	req.Header.Add("Accept", "*/*")
+	req.Header.Add("Cache-Control", "no-cache")
+	req.Header.Add("Host", "graph.microsoft.com")
+	req.Header.Add("Accept-Encoding", "gzip, deflate")
+	req.Header.Add("Connection", "keep-alive")
+	req.Header.Add("cache-control", "no-cache")
+
+	res, err := http.DefaultClient.Do(req)
+	if err != nil {
+		return []MailMessage{}, err
+	}
+
+	defer res.Body.Close()
+	body, err := ioutil.ReadAll(res.Body)
+	if err != nil {
+		return []MailMessage{}, err
+	}
+
+	var messages []MailMessage
+	err = json.Unmarshal(body, &messages)
+
+	return messages, nil
+}
+
+func (request GetInboxMailRequest) GetInboxMailBySenderAddress(bearerToken, fromAddress string) ([]MailMessage, error) {
+	url := fmt.Sprintf("https://graph.microsoft.com/v1.0/me/messages?$filter=(from/emailAddress/address) eq '%s'")
 
 	req, _ := http.NewRequest("GET", url, nil)
 
