@@ -1,8 +1,8 @@
 package o365Api
 
 import (
-	"errors"
 	"encoding/json"
+	"errors"
 	"fmt"
 	"io/ioutil"
 	"net/http"
@@ -14,11 +14,11 @@ type Token interface {
 }
 
 type TokenRequest struct {
-	client_id		string
-	client_secret	string
-	tenant_id		string
-	userName		string
-	userPassword	string
+	Client_ID     string
+	Client_Secret string
+	Tenant_ID     string
+	UserName      string
+	UserPassword  string
 }
 
 type TokenResponse struct {
@@ -30,14 +30,14 @@ type TokenResponse struct {
 }
 
 func (t TokenRequest) GetUserBearerToken() (TokenResponse, error) {
-	if len(t.client_id) == 0 || len(t.client_secret) == 0 || len(t.tenant_id) == 0 || len(t.userName) == 0 || len(t.userPassword) == 0 {
+	if len(t.Client_ID) == 0 || len(t.Client_Secret) == 0 || len(t.Tenant_ID) == 0 || len(t.UserName) == 0 || len(t.UserPassword) == 0 {
 		return TokenResponse{}, errors.New("TokenRequest is not valid")
 	}
 
 	url := fmt.Sprintf("https://login.microsoftonline.com/%s/oauth2/v2.0/token", t.tenant_id)
 
 	payload := strings.NewReader(fmt.Sprintf("grant_type=password&client_id=%s&client_secret=%s&scope=https://graph.microsoft.com/.default&userName=%s&password=%s",
-		t.client_id, t.client_secret, t.userName, t.userPassword))
+		t.Client_ID, t.Client_Secret, t.UserName, t.UserPassword))
 	req, _ := http.NewRequest("POST", url, payload)
 	req.Header.Add("cache-control", "no-cache")
 
