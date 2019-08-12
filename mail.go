@@ -9,7 +9,7 @@ import (
 
 type Mail interface {
 	GetMailMesasges(string) ([]MailMessage, error)
-	GetInboxMailFromAddress(string, string) ([]MailMessage, error)
+	GetInboxMailFromAddress(string) ([]MailMessage, error)
 	GetMessageAttachement() (MessageAttachment, error)
 }
 
@@ -121,7 +121,7 @@ func (request MailRequest) GetInboxMail(bearerToken string) ([]MailMessage, erro
 	return messages, nil
 }
 
-func (request MailRequest) GetInboxMailFromAddress(bearerToken, fromAddress string) ([]MailMessage, error) {
+func (request MailRequest) GetInboxMailFromAddress(fromAddress string) ([]MailMessage, error) {
 	url := fmt.Sprintf("https://graph.microsoft.com/v1.0/me/messages?$filter=(from/emailAddress/address) eq '%s'", fromAddress)
 
 	req, _ := http.NewRequest("GET", url, nil)
