@@ -13,6 +13,9 @@ type Mail interface {
 	GetMailMesasges(string) (MailMessage, error)
 	GetInboxMailFromAddress(string) (MailMessage, error)
 	GetMessageAttachement() (MessageAttachment, error)
+	GetTopLevelMailFolders() (MailBoxFolder, error)
+	GetChildLevelMailFolders(string) (MailBoxFolder, error)
+	GetMailFolderMessages(string) (MailMessage, error)
 }
 
 type MailRequest struct {
@@ -92,6 +95,19 @@ type MessageAttachment struct {
 	} `json:"value"`
 }
 
+type MailBoxFolder struct {
+	OdataContext  string `json:"@odata.context"`
+	OdataNextLink string `json:"@odata.nextLink"`
+	Value         []struct {
+		ID               string `json:"id"`
+		DisplayName      string `json:"displayName"`
+		ParentFolderID   string `json:"parentFolderId"`
+		ChildFolderCount int    `json:"childFolderCount"`
+		UnreadItemCount  int    `json:"unreadItemCount"`
+		TotalItemCount   int    `json:"totalItemCount"`
+	} `json:"value"`
+}
+
 func (request MailRequest) GetInboxMail(bearerToken string) (MailMessage, error) {
 	url := "https://graph.microsoft.com/v1.0/me/messages"
 
@@ -157,11 +173,6 @@ func (request MailRequest) GetMessageAttachement() (MessageAttachment, error) {
 
 	req.Header.Add("Content-Type", "application/json")
 	req.Header.Add("Authorization", fmt.Sprintf("Bearer %s", request.BearerAccessToken))
-	req.Header.Add("Accept", "*/*")
-	req.Header.Add("Cache-Control", "no-cache")
-	req.Header.Add("Host", "graph.microsoft.com")
-	req.Header.Add("Accept-Encoding", "gzip, deflate")
-	req.Header.Add("Connection", "keep-alive")
 	req.Header.Add("cache-control", "no-cache")
 
 	res, err := http.DefaultClient.Do(req)
@@ -178,4 +189,80 @@ func (request MailRequest) GetMessageAttachement() (MessageAttachment, error) {
 	}
 
 	return msgAttachment, nil
+}
+
+func (request MailRequest) GetTopLevelMailFolders() (MailBoxFolder, error) {
+	url := "https://graph.microsoft.com/v1.0/me/mailFolders/"
+
+	req, _ := http.NewRequest("GET", url, nil)
+
+	req.Header.Add("Content-Type", "application/json")
+	req.Header.Add("Authorization", fmt.Sprintf("Bearer %s", request.BearerAccessToken))
+	req.Header.Add("cache-control", "no-cache")
+
+	res, err := http.DefaultClient.Do(req)
+	if err != nil {
+		return MailBoxFolder{}, err
+	}
+
+	defer res.Body.Close()
+	body, _ := ioutil.ReadAll(res.Body)
+
+	var folders MailBoxFolder
+	if err := json.Unmarshal(body, &folders); err != nil {
+		return MailBoxFolder{}, err
+	}
+
+	return folders, nil
+}
+
+func (request MailRequest) GetChildLevelMailFolders(parentFolderId string) (MailBoxFolder, error) {
+	url := fmt.Sprintf("https://graph.microsoft.com/v1.0/me/mailFolders/%s/childFolders", parentFolderId)
+
+	req, _ := http.NewRequest("GET", url, nil)
+
+	req.Header.Add("Content-Type", "application/json")
+	req.Header.Add("Authorization", fmt.Sprintf("Bearer %s", request.BearerAccessToken))
+	req.Header.Add("cache-control", "no-cache")
+
+	res, err := http.DefaultClient.Do(req)
+	if err != nil {
+		return MailBoxFolder{}, err
+	}
+
+	defer res.Body.Close()
+	body, _ := ioutil.ReadAll(res.Body)
+
+	var folders MailBoxFolder
+	if err := json.Unmarshal(body, &folders); err != nil {
+		return MailBoxFolder{}, err
+	}
+
+	return folders, nil
+}
+
+func (request MailRequest) GetMailFolderMessages(childFolderId string) (MailMessage, error) {
+	url := fmt.Sprintf("https://graph.microsoft.com/v1.0/me/mailFolders/%s/messages", childFolderId)
+
+	req, _ := http.NewRequest("GET", url, nil)
+
+	req.Header.Add("Content-Type", "application/json")
+	req.Header.Add("Authorization", fmt.Sprintf("Bearer %s", request.BearerAccessToken))
+	req.Header.Add("cache-control", "no-cache")
+
+	res, err := http.DefaultClient.Do(req)
+	if err != nil {
+		return MailMessage{}, err
+	}
+
+	defer res.Body.Close()
+	body, _ := ioutil.ReadAll(res.Body)
+
+	var messages MailMessage
+	if err := json.Unmarshal(body, &messages); err != nil {
+		fmt.Println(err)
+		return MailMessage{}, err
+	}
+
+	return messages, nil
 }
