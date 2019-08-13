@@ -80,18 +80,18 @@ type MailMessage struct {
 }
 
 type MessageAttachment struct {
-	_odata_context string `json:"@odata.context"`
-	Value          []struct {
-		_odata_type          string      `json:"@odata.type"`
-		ContentBytes         string      `json:"contentBytes"`
+	OdataContext string `json:"@odata.context"`
+	Value        []struct {
+		OdataType            string      `json:"@odata.type"`
+		ID                   string      `json:"id"`
+		LastModifiedDateTime time.Time   `json:"lastModifiedDateTime"`
+		Name                 string      `json:"name"`
+		ContentType          string      `json:"contentType"`
+		Size                 int         `json:"size"`
+		IsInline             bool        `json:"isInline"`
 		ContentID            string      `json:"contentId"`
 		ContentLocation      interface{} `json:"contentLocation"`
-		ContentType          string      `json:"contentType"`
-		ID                   string      `json:"id"`
-		IsInline             bool        `json:"isInline"`
-		LastModifiedDateTime string      `json:"lastModifiedDateTime"`
-		Name                 string      `json:"name"`
-		Size                 int         `json:"size"`
+		ContentBytes         string      `json:"contentBytes"`
 	} `json:"value"`
 }
 
@@ -175,10 +175,7 @@ func (request MailRequest) GetMessageAttachement() (MessageAttachment, error) {
 	req.Header.Add("Authorization", fmt.Sprintf("Bearer %s", request.BearerAccessToken))
 	req.Header.Add("cache-control", "no-cache")
 
-	res, err := http.DefaultClient.Do(req)
-	if err != nil {
-		return MessageAttachment{}, err
-	}
+	res, _ := http.DefaultClient.Do(req)
 
 	defer res.Body.Close()
 	body, _ := ioutil.ReadAll(res.Body)
