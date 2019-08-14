@@ -1,13 +1,12 @@
 package o365Api
 
 import (
-	"io"
+	"archive/zip"
 	"fmt"
-	"strings"
+	"io"
 	"os"
 	"path/filepath"
-	"archive/zip"
-	
+	"strings"
 )
 
 type ZipRequest interface {
@@ -15,22 +14,22 @@ type ZipRequest interface {
 }
 
 type Zip struct {
-	source		string
-	destination	string
+	Source      string
+	Destination string
 }
 
-func Unzip(request Zip) ([]string, error) {
+func (zipRequest Zip) Unzip() ([]string, error) {
 	var filenames []string
 
-	reader, err := zip.OpenReader(request.source)
+	reader, err := zip.OpenReader(zipRequest.Source)
 	if err != nil {
 		return []string{}, err
 	}
 	defer reader.Close()
 
 	for _, file := range reader.File {
-		path := filepath.Join(request.destination, file.Name)
-		if !strings.HasPrefix(path, filepath.Clean(request.destination)+string(os.PathSeparator)) {
+		path := filepath.Join(zipRequest.Destination, file.Name)
+		if !strings.HasPrefix(path, filepath.Clean(zipRequest.Destination)+string(os.PathSeparator)) {
 			return filenames, fmt.Errorf("%s: illegal file path", path)
 		}
 
@@ -64,4 +63,4 @@ func Unzip(request Zip) ([]string, error) {
 	}
 
 	return filenames, nil
-} 
+}
